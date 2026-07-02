@@ -155,9 +155,11 @@
       <p>この端末は初めてです。同期コードをお持ちですか？</p>
       <button class="primary" id="gCreate" style="margin-bottom:8px">🆕 新しい同期コードを作成</button>
       <button id="gLogin">🔑 既存の同期コードで開く</button>
+      <p style="margin-top:10px"><button class="ghost small" id="gEditConfig">⚙️ 接続設定（URL/Key）をやり直す</button></p>
     `);
     document.getElementById('gCreate').onclick = renderCreateStep;
     document.getElementById('gLogin').onclick = ()=>renderLoginStep(true);
+    document.getElementById('gEditConfig').onclick = renderConfigStep;
   }
 
   function renderCreateStep(){
@@ -211,9 +213,12 @@
       <input id="gPass" type="password" placeholder="アプリパスワード">
       <div class="gate-err" id="gErr"></div>
       <button class="primary" id="gDo">開く</button>
-      ${needCode ? '<p style="margin-top:10px"><button class="ghost small" id="gBack">戻る</button></p>' : ''}
+      ${needCode ? '<p style="margin-top:10px"><button class="ghost small" id="gBack">戻る</button> <button class="ghost small" id="gEditConfig2">⚙️ 接続設定をやり直す</button></p>' : ''}
     `);
-    if(needCode) document.getElementById('gBack').onclick = renderChooseStep;
+    if(needCode){
+      document.getElementById('gBack').onclick = renderChooseStep;
+      document.getElementById('gEditConfig2').onclick = renderConfigStep;
+    }
     document.getElementById('gDo').onclick = async ()=>{
       const code = (needCode ? document.getElementById('gCode').value : _origGetItem(CODE_KEY) || '').trim().toUpperCase();
       const pass = document.getElementById('gPass').value;
@@ -234,7 +239,8 @@
         setBadge('ok', '✅ 同期オン（読み込み反映のため再読み込みします）');
         location.reload();
       }catch(e){
-        document.getElementById('gErr').textContent = '通信に失敗しました: ' + e.message;
+        const hint = e.message === 'Failed to fetch' ? '（接続設定のURLが間違っている可能性大。上の「接続設定をやり直す」から再入力してください）' : '';
+        document.getElementById('gErr').textContent = '通信に失敗しました: ' + e.message + hint;
       }
     };
   }
