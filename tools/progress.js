@@ -571,7 +571,7 @@ function renderNextCard(project){
     <div class="actbtns">
       <button class="ghost small" id="nextOpen">このフェーズを開く</button>
       <button class="ghost small" id="nextSkipBtn">🔀 別の提案（残り${list.length-1}）</button>
-      <button class="ghost small" id="nextCopyBtn">📋 スケジューラー用にコピー</button>
+      <button class="ghost small" id="nextAddBtn">📅 スケジューラーに追加</button>
     </div>
   `;
   el.querySelector('input').addEventListener('change', e=>{
@@ -583,13 +583,29 @@ function renderNextCard(project){
     document.getElementById('phasesCol').scrollIntoView({behavior:'smooth', block:'start'});
   });
   el.querySelector('#nextSkipBtn').addEventListener('click', ()=>{ nextSkip++; renderNextCard(project); });
-  el.querySelector('#nextCopyBtn').addEventListener('click', (e)=>{
+  el.querySelector('#nextAddBtn').addEventListener('click', (e)=>{
+    const btn = e.currentTarget;
+    const orig = btn.textContent;
+    const flash = (label)=>{ btn.textContent=label; setTimeout(()=>btn.textContent=orig, 1500); };
+    if(typeof window.schedulerAddTask === 'function'){
+      const result = window.schedulerAddTask({
+        sourceId: it.id,
+        title: `${ph.title} — ${it.text}`,
+        type: 'その他',
+        due_date: ph.due || null,
+        priority: 'mid',
+        est_min: 30
+      });
+      flash(result.added ? '✓スケジューラーに追加しました' : '📌既に追加済みです');
+      return;
+    }
+    // フォールバック（想定外: scheduler.jsが読み込まれていない場合）
     const task = {
       id: 't-' + Date.now(),
       title: `${ph.title} — ${it.text}`,
       type: 'その他',
       subject: project.title,
-      est_min: null,
+      est_min: 30,
       due_date: ph.due || null,
       due_note: '',
       priority: 'mid',
@@ -598,10 +614,8 @@ function renderNextCard(project){
       note: it.blockNote || ''
     };
     const text = JSON.stringify(task, null, 2);
-    const btn = e.currentTarget;
-    const done = ()=>{ const orig=btn.textContent; btn.textContent='✓コピーしました'; setTimeout(()=>btn.textContent=orig, 1500); };
     if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text).then(done).catch(()=>prompt('コピーできませんでした。手動でコピーしてください:', text));
+      navigator.clipboard.writeText(text).then(()=>flash('✓コピーしました')).catch(()=>prompt('コピーできませんでした。手動でコピーしてください:', text));
     } else {
       prompt('以下を手動でコピーしてください（v2/prototypes/scheduler/ のTaskスキーマ準拠）:', text);
     }

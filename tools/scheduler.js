@@ -410,3 +410,16 @@ document.getElementById('fTitle').addEventListener('keydown',e=>{if(e.key==='Ent
 setKind('task');
 tick(); setInterval(tick, 30000);
 render();
+
+/* ===== 外部連携（進捗トラッカー→スケジューラー ライブ追加） ===== */
+window.schedulerAddTask = function(task){
+  const id = 'pt-' + task.sourceId;
+  if(state.items.some(i=>i.id===id)) return {added:false};
+  state.items.push({
+    id, kind:'task', title:task.title, type:task.type||'その他',
+    priority:task.priority||'mid', est_min:task.est_min||30,
+    due_date:task.due_date||null, fixed_start:null, placements:[], status:'todo'
+  });
+  save(); render();
+  return {added:true};
+};
