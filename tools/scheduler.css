@@ -1,0 +1,49 @@
+/* スケジュール調整ツール 固有スタイル（共通部分は shared/base.css） */
+#tab-scheduler .wrap{grid-template-columns:320px 1fr 280px;max-width:1220px}
+#tab-scheduler #clock{font-variant-numeric:tabular-nums;font-weight:700;font-size:15px;color:var(--accent)}
+#tab-scheduler .seg{display:flex;gap:6px;margin-bottom:10px}
+#tab-scheduler .seg button{flex:1;background:var(--panel2)}
+#tab-scheduler .seg button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+#tab-scheduler .form label{display:block;font-size:12px;color:var(--muted);margin:8px 0 3px}
+#tab-scheduler .form input,#tab-scheduler .form select{width:100%}
+#tab-scheduler .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#tab-scheduler .editbar{display:none;align-items:center;gap:8px;font-size:12px;color:var(--accent);margin-top:8px}
+#tab-scheduler .editbar.on{display:flex}
+#tab-scheduler .item{display:flex;gap:8px;align-items:flex-start;padding:8px;border:1px solid var(--line);
+      border-radius:9px;margin-bottom:7px;background:var(--panel2)}
+#tab-scheduler .item .bar{width:4px;align-self:stretch;border-radius:3px;background:var(--mid)}
+#tab-scheduler .item.high .bar{background:var(--high)} #tab-scheduler .item.low .bar{background:var(--low)}
+#tab-scheduler .item.event .bar{background:var(--fixed)}
+#tab-scheduler .item.done{opacity:.5}
+#tab-scheduler .item.done .t{text-decoration:line-through}
+#tab-scheduler .item .chk{margin-top:3px;width:16px;height:16px;flex:none;cursor:pointer}
+#tab-scheduler .item .body{flex:1;min-width:0}
+#tab-scheduler .item .t{font-size:14px;font-weight:600;word-break:break-word}
+#tab-scheduler .item .meta{font-size:11px;color:var(--muted);margin-top:2px}
+#tab-scheduler .item .acts{display:flex;flex-direction:column;gap:2px}
+#tab-scheduler .item .ic{color:var(--muted);cursor:pointer;border:none;background:none;padding:2px 4px;font-size:13px}
+#tab-scheduler .item .ic:hover{color:var(--txt)}
+#tab-scheduler .pill{display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;border:1px solid var(--line);margin-right:4px}
+#tab-scheduler .tag-other{color:var(--muted);font-size:11px}
+#tab-scheduler .timeline{position:relative;border-left:2px solid var(--line);margin-left:46px}
+#tab-scheduler .slot{position:relative;min-height:34px}
+#tab-scheduler .slot .time{position:absolute;left:-46px;top:-7px;font-size:11px;color:var(--muted);width:40px;text-align:right}
+#tab-scheduler .block{margin:2px 0 2px 10px;padding:6px 9px;border-radius:8px;font-size:13px;color:#fff}
+#tab-scheduler .block.fixed{background:var(--fixed);color:var(--txt)}
+#tab-scheduler .block.overlay{background:transparent;border:1px dashed var(--fixed);color:var(--muted)}
+#tab-scheduler .block.task{cursor:pointer}
+#tab-scheduler .block.high{background:var(--high)} #tab-scheduler .block.mid{background:var(--mid);color:#1a1d23} #tab-scheduler .block.low{background:var(--low);color:#1a1d23}
+#tab-scheduler .block .bt{font-weight:600} #tab-scheduler .block .bm{font-size:11px;opacity:.92}
+#tab-scheduler .block.move{background:transparent;border:1px dashed var(--line);color:var(--muted)}
+#tab-scheduler .nowline{position:relative;margin:6px 0 6px 10px;border-top:2px solid var(--now);height:0}
+#tab-scheduler .nowline span{position:absolute;left:-56px;top:-9px;font-size:10px;color:var(--now);font-weight:700;background:var(--panel);padding:0 2px}
+#tab-scheduler .nowdot{position:absolute;left:-5px;top:-5px;width:8px;height:8px;border-radius:99px;background:var(--now)}
+#tab-scheduler .overflow{margin-top:10px;padding:8px;border:1px dashed var(--high);border-radius:8px;font-size:12px;color:var(--high)}
+#tab-scheduler .dl{display:flex;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+#tab-scheduler .dl:last-child{border-bottom:none}
+#tab-scheduler .dl .d{font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap}
+#tab-scheduler .dot{width:9px;height:9px;border-radius:99px;background:var(--mid);flex:none}
+#tab-scheduler .dot.high{background:var(--high)} #tab-scheduler .dot.low{background:var(--low)}
+#tab-scheduler .empty{color:var(--muted);font-size:12px;padding:6px 0}
+#tab-scheduler .hint{font-size:11px;color:var(--muted);margin-top:10px}
+#tab-scheduler .arch-h{font-size:12px;color:var(--muted);margin:14px 0 6px;cursor:pointer;user-select:none}

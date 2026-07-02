@@ -1,0 +1,63 @@
+/* 筋トレトラッカー 固有スタイル（共通部分は shared/base.css） */
+#tab-workout .streak{display:flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);
+        border-radius:9px;padding:6px 12px}
+#tab-workout .streak b{font-size:20px;color:var(--accent)}
+#tab-workout .streak span{font-size:11px;color:var(--muted)}
+
+#tab-workout .today-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+#tab-workout .day-badge{width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;
+           display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex:none}
+#tab-workout .today-head .t{font-weight:700;font-size:15px}
+#tab-workout .today-head .n{font-size:11.5px;color:var(--muted)}
+#tab-workout .today-head .swap{margin-left:auto}
+#tab-workout .already-done{background:rgba(76,195,138,.1);border:1px solid var(--done);border-radius:9px;
+               padding:8px 10px;font-size:12.5px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+#tab-workout .exlist{border-top:1px solid var(--line);margin-top:6px}
+#tab-workout .exrow{display:grid;grid-template-columns:1fr repeat(3,52px);gap:8px;align-items:center;
+       padding:9px 0;border-bottom:1px solid var(--line)}
+#tab-workout .exrow .en{font-size:13px}
+#tab-workout .exrow .en .muted{display:block;font-size:10.5px;color:var(--muted)}
+#tab-workout .exrow input{width:100%;text-align:center;padding:5px}
+#tab-workout .setlbl{display:grid;grid-template-columns:1fr repeat(3,52px);gap:8px;font-size:10px;color:var(--muted);padding-bottom:4px}
+#tab-workout .setlbl div:not(:first-child){text-align:center}
+#tab-workout .actionsrow{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+#tab-workout .modebtns{display:flex;gap:6px;margin-left:auto}
+#tab-workout .modebtns button.active{border-color:var(--accent);color:var(--accent)}
+
+#tab-workout table.pb{width:100%;border-collapse:collapse;font-size:12.5px}
+#tab-workout table.pb th{text-align:left;color:var(--muted);font-weight:600;font-size:11px;padding:4px 4px;border-bottom:1px solid var(--line)}
+#tab-workout table.pb td{padding:6px 4px;border-bottom:1px solid var(--line)}
+#tab-workout table.pb td.num{text-align:right;font-variant-numeric:tabular-nums}
+#tab-workout table.pb tr.new td{color:var(--done);font-weight:700}
+
+#tab-workout .bw-add{display:flex;gap:6px;margin-bottom:10px}
+#tab-workout .bw-add input[type=number]{width:80px}
+#tab-workout .bw-add input[type=date]{flex:1}
+#tab-workout .bw-chart{width:100%;height:70px}
+#tab-workout .bw-list{max-height:110px;overflow:auto;font-size:11.5px;margin-top:6px}
+#tab-workout .bw-list div{display:flex;justify-content:space-between;padding:2px 0;color:var(--muted)}
+
+#tab-workout .photo-add{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+#tab-workout .photo-add input[type=text]{flex:1;min-width:120px}
+#tab-workout .photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+#tab-workout .photo-card{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel2)}
+#tab-workout .photo-card img{width:100%;height:64px;object-fit:cover;display:block}
+#tab-workout .photo-card .noimg{width:100%;height:64px;display:flex;align-items:center;justify-content:center;
+                    color:var(--muted);font-size:22px}
+#tab-workout .photo-card .meta{padding:4px 5px;font-size:9.5px;color:var(--muted)}
+#tab-workout .photo-note{font-size:11px;color:var(--muted);margin-bottom:8px}
+
+#tab-workout .heatmap{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:3px;overflow-x:auto;padding-bottom:6px}
+#tab-workout .hcell{width:11px;height:11px;border-radius:2px;background:var(--line)}
+#tab-workout .hcell.skip{background:rgba(255,172,59,.55)}
+#tab-workout .hcell.quick{background:rgba(91,140,255,.55)}
+#tab-workout .hcell.full{background:var(--done)}
+#tab-workout .hcell.future{background:transparent}
+#tab-workout .dot.full{background:var(--done)} #tab-workout .dot.quick{background:rgba(91,140,255,.55)}
+#tab-workout .dot.skip{background:rgba(255,172,59,.55)} #tab-workout .dot.none{background:var(--line)}
+
+#tab-workout .history{font-size:12px;max-height:160px;overflow:auto}
+#tab-workout .history-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--line);color:var(--muted)}
+#tab-workout .history-row .d{color:var(--txt)}
+
+#tab-workout .rownote{font-size:11px;color:var(--muted);margin-top:6px}

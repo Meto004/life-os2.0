@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>life-os v2.0 — 統合ツール (proto)</title>
+<!--
+  life-os v2.0 統合ツール（プロトタイプ）
+  - v2/prototypes/{progress-tracker,workout-tracker,scheduler}/ の3プロトタイプを1シェルに統合
+  - 各ツールは元のlocalStorageキー・DOM構造をほぼそのまま維持し、tools/*.js に type=module で分離
+    （module scopeによりstate/render等の関数名衝突を回避。file://では動かないため要ローカルサーバー）
+  - 設計書: docs/superpowers/specs/2026-07-02-v2-integrated-tools-design.md
+  - 同期(shared/sync.js)は次段階で追加予定（今はlocalStorageのみ・タブ統合の動作確認フェーズ）
+-->
+<link rel="stylesheet" href="shared/base.css">
+<link rel="stylesheet" href="tools/progress.css">
+<link rel="stylesheet" href="tools/workout.css">
+<link rel="stylesheet" href="tools/scheduler.css">
+</head>
+<body>
+
+<div id="gateOverlay" class="gate-overlay" style="display:none"></div>
+
+<div class="shell-header">
+  <h1>🧭 life-os v2.0 統合ツール</h1>
+  <span class="sub">進捗 / 筋トレ / スケジュール（proto）</span>
+  <div class="shell-controls">
+    <button class="sync-badge" id="syncBadge" style="background:transparent;border:1px solid var(--line)">🔌 同期未設定（localStorageのみ）</button>
+  </div>
+</div>
+
+<div class="tabnav">
+  <button class="tab-btn active" data-tab="tab-progress">📊 進捗トラッカー</button>
+  <button class="tab-btn" data-tab="tab-workout">💪 筋トレトラッカー</button>
+  <button class="tab-btn" data-tab="tab-scheduler">🗓️ スケジューラー</button>
+</div>
+
+<!-- ══════════════════ 進捗トラッカー ══════════════════ -->
+<div id="tab-progress" class="tabpanel active">
+  <div class="tool-header">
+    <h1>📊 進捗トラッカー</h1>
+    <span class="sub" id="headerSub">慶應SFC出願まわり（proto）</span>
+    <div class="controls">
+      <button class="ghost small" id="btnAddProject">＋ プロジェクト</button>
+      <button class="ghost small" id="btnExportProgress">⇩ エクスポート</button>
+      <button class="ghost small" id="btnReset">↺ 初期状態に戻す</button>
+    </div>
+  </div>
+
+  <div class="tabsbar" id="tabsBar"></div>
+
+  <div class="nextbar">
+    <div class="nextcard" id="nextCard"></div>
+  </div>
+
+  <div class="wrap">
+    <div class="col" id="phasesCol">
+      <h2 id="phasesTitle">フェーズ</h2>
+      <div class="legend">
+        <span><i class="dot todo"></i>未着手</span>
+        <span><i class="dot wip"></i>進行中</span>
+        <span><i class="dot done"></i>完了</span>
+        <span><i class="dot" style="background:var(--mid)"></i>🚧ブロック中</span>
+      </div>
+      <div id="phaseList"></div>
+      <div class="add-phase">
+        <input id="newPhaseTitle" placeholder="新しいフェーズを追加">
+        <button class="primary small" id="btnAddPhase">＋追加</button>
+      </div>
+    </div>
+
+    <div class="col">
+      <h2>全体進捗</h2>
+      <div class="summary-ring">
+        <div class="ring">
+          <svg width="120" height="120">
+            <circle cx="60" cy="60" r="52" stroke="var(--line)" stroke-width="12" fill="none"/>
+            <circle id="ringFg" cx="60" cy="60" r="52" stroke="var(--accent)" stroke-width="12" fill="none"
+                    stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"/>
+          </svg>
+          <div class="pct" id="ringPct">0%</div>
+        </div>
+      </div>
+      <div class="stat-row"><span>フェーズ数</span><b id="statPhases">0</b></div>
+      <div class="stat-row"><span>完了フェーズ</span><b id="statDone">0</b></div>
+      <div class="stat-row"><span>進行中</span><b id="statWip">0</b></div>
+      <div class="stat-row"><span>未着手</span><b id="statTodo">0</b></div>
+      <div class="stat-row"><span>チェック項目</span><b id="statItems">0/0</b></div>
+      <div class="daysleft">目標完成目安 <b id="targetDate">-</b><br>残り <b id="daysLeft">-</b> 日</div>
+
+      <div class="velocity-box">
+        <h2 style="margin-bottom:6px">週間ベロシティ</h2>
+        <div class="velocity-num" id="velocityNum">-</div>
+        <div class="velocity-hint" id="velocityHint"></div>
+        <div class="history-row" id="historyRow"></div>
+        <button class="ghost small btn-snapshot" id="btnSnapshot">📸 今週の進捗を記録</button>
+      </div>
+
+      <h2 style="margin-top:16px">🚧 ブロック中（他者待ち）</h2>
+      <div class="blocked-list" id="blockedList"></div>
+    </div>
+  </div>
+
+  <div class="gantt-wrap">
+    <div class="col">
+      <h2>タイムライン</h2>
+      <div class="gantt-head"><span>-</span><span id="ganttTarget">-</span></div>
+      <div class="gantt" id="ganttChart"></div>
+      <div id="ganttNoDue"></div>
+    </div>
+  </div>
+
+  <div class="foot">出典: materials/research/rq.md ・ materials/application/ ・ goals/quarterly.md KR1-KR3</div>
+</div>
+
+<!-- ══════════════════ 筋トレトラッカー ══════════════════ -->
+<div id="tab-workout" class="tabpanel">
+  <div class="tool-header">
+    <h1>💪 筋トレトラッカー</h1>
+    <span class="sub">出典: routines/筋トレ_自重メニュー.md</span>
+    <div class="controls">
+      <div class="streak"><b id="streakNum">-</b><span>日連続</span></div>
+      <button class="small" id="btnExportWorkout">⇩ エクスポート</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div>
+      <div class="col" id="todayCol">
+        <h2>今日のメニュー</h2>
+        <div class="today-head">
+          <div class="day-badge" id="dayBadge">?</div>
+          <div>
+            <div class="t" id="dayTitle">-</div>
+            <div class="n" id="dayFocus">-</div>
+          </div>
+          <div class="swap">
+            <select id="daySwap"></select>
+          </div>
+        </div>
+        <div id="alreadyDone" style="display:none" class="already-done"></div>
+
+        <div class="setlbl"><div>種目</div><div>1set</div><div>2set</div><div>3set</div></div>
+        <div class="exlist" id="exlist"></div>
+
+        <div class="actionsrow">
+          <button class="primary" id="btnQuick">✅ ワンタップ完了（目安通り）</button>
+          <button id="btnSaveDetail">📝 入力した回数で保存</button>
+          <div class="modebtns">
+            <button class="small" id="btnFullMode">フル</button>
+            <button class="small" id="btnShortMode">10分版(2set)</button>
+          </div>
+        </div>
+        <div class="actionsrow">
+          <button class="ghost small" id="btnSkip">😴 今日は休養／スキップ</button>
+          <button class="ghost small" id="btnUndo" style="display:none">↩ 今日の記録を取り消す</button>
+        </div>
+        <div class="rownote">「規定回数を楽にこなせたら回数を増やす」＝漸進性が伸びの鍵。入力すると自己ベストが自動更新されます。</div>
+      </div>
+
+      <div class="col">
+        <h2>継続カレンダー（直近10週）</h2>
+        <div class="heatmap" id="heatmap"></div>
+        <div class="legend">
+          <span><i class="dot full"></i>フル/10分版</span>
+          <span><i class="dot quick"></i>ワンタップ完了</span>
+          <span><i class="dot skip"></i>休養/スキップ</span>
+          <span><i class="dot none"></i>記録なし</span>
+        </div>
+      </div>
+
+      <div class="col">
+        <h2>これまでの記録</h2>
+        <div class="history" id="history"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="col">
+        <h2>自己ベスト</h2>
+        <table class="pb">
+          <thead><tr><th>種目</th><th class="num">開始時</th><th class="num">現在ベスト</th></tr></thead>
+          <tbody id="pbBody"></tbody>
+        </table>
+      </div>
+
+      <div class="col">
+        <h2>体重の推移</h2>
+        <div class="bw-add">
+          <input type="date" id="bwDate">
+          <input type="number" step="0.1" id="bwVal" placeholder="kg">
+          <button class="small primary" id="btnBwAdd">追加</button>
+        </div>
+        <svg class="bw-chart" id="bwChart" viewBox="0 0 300 70" preserveAspectRatio="none"></svg>
+        <div class="bw-list" id="bwList"></div>
+      </div>
+
+      <div class="col">
+        <h2>月1写真</h2>
+        <div class="photo-note">📷 写真は同期されません（端末内のみ保存）</div>
+        <div class="photo-add">
+          <input type="text" id="photoNote" placeholder="気づき（任意）">
+          <input type="file" id="photoFile" accept="image/*">
+          <button class="small primary" id="btnPhotoAdd">追加</button>
+        </div>
+        <div class="photo-grid" id="photoGrid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ スケジュール調整ツール ══════════════════ -->
+<div id="tab-scheduler" class="tabpanel">
+  <div class="tool-header">
+    <div>
+      <h1>🗓️ スケジュール調整ツール</h1>
+      <div class="sub"><span id="dateLabel"></span> · 現在 <span id="clock">--:--</span></div>
+    </div>
+    <div class="controls">
+      <label class="sub">対象日 <input type="date" id="dayPick"></label>
+      <button class="ghost" id="prevDay" title="前日">◀</button>
+      <button class="ghost" id="nextDay" title="翌日">▶</button>
+      <label class="sub">稼働 <input type="time" id="workStart" value="09:00" style="width:96px"></label>
+      <span class="sub">–</span>
+      <input type="time" id="workEnd" value="22:30" style="width:96px">
+      <label class="sub">バッファ <input type="number" id="bufMin" min="0" step="5" value="5" style="width:60px">分</label>
+      <label class="sub" title="この分数を超えるタスクは自動で小コマに分割（0で分割しない）">1コマ上限 <input type="number" id="chunkMax" min="0" step="15" value="60" style="width:64px">分</label>
+      <button class="primary" id="autoBtn">⚡ 自動で時間割を組む</button>
+      <button class="ghost" id="sampleBtn">サンプル投入</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <!-- 左: 即時追加 + タスク一覧 -->
+    <section class="col">
+      <h2>＋ 即時追加</h2>
+      <div class="seg">
+        <button id="segTask" class="on" data-kind="task">📝 タスク</button>
+        <button id="segEvent" data-kind="event">📅 予定</button>
+      </div>
+      <div class="form">
+        <label>内容</label>
+        <input id="fTitle" placeholder="例: 政経 p136-143 一読">
+
+        <div id="taskFields">
+          <div class="row2">
+            <div><label>所要(分)</label><input id="fEst" type="number" min="5" step="5" value="30"></div>
+            <div><label>優先度</label>
+              <select id="fPri"><option value="high">🔴 高</option><option value="mid" selected>🟠 中</option><option value="low">🟡 低</option></select>
+            </div>
+          </div>
+          <div class="row2">
+            <div><label>締切</label><input id="fDue" type="date"></div>
+            <div><label>種類</label>
+              <select id="fTypeTask"><option>提出物</option><option>小テスト</option><option>考査</option><option>受験</option><option selected>その他</option></select>
+            </div>
+          </div>
+        </div>
+
+        <div id="eventFields" style="display:none">
+          <div class="row2">
+            <div><label>日付</label><input id="fEventDate" type="date"></div>
+            <div><label>開始時刻</label><input id="fStart" type="time"></div>
+          </div>
+          <div class="row2">
+            <div><label>所要(分)</label><input id="fEstE" type="number" min="5" step="5" value="50"></div>
+            <div><label>種類</label>
+              <select id="fTypeEvent"><option>授業</option><option>習慣</option><option>試験</option><option selected>予定</option><option>フォーカス</option></select>
+            </div>
+          </div>
+          <label>🚶 移動時間(分・予定の前後に確保)</label>
+          <input id="fTravel" type="number" min="0" step="5" value="0">
+          <label>タスクの重ね</label>
+          <select id="fBlocking">
+            <option value="block">🔒 占有（この時間にタスクを入れない）</option>
+            <option value="overlay">🟰 重ねてOK（この時間にタスクを配置可）</option>
+          </select>
+        </div>
+
+        <div style="margin-top:12px"><button class="primary" id="addBtn" style="width:100%">追加</button></div>
+        <div class="editbar" id="editBar">✏️ 編集中 <button class="ghost" id="cancelEdit" style="padding:3px 8px">キャンセル</button></div>
+      </div>
+
+      <h2 style="margin-top:16px">📝 タスク</h2>
+      <div id="taskList"></div>
+      <div class="arch-h" id="archToggle">▸ 完了（アーカイブ） <span id="archCount"></span></div>
+      <div id="archList" style="display:none"></div>
+
+      <h2 style="margin-top:16px">🔁 ルーティンテンプレート</h2>
+      <label>日タイプ</label>
+      <select id="pDay"><option value="weekday">平日（学校あり）</option><option value="holiday">休日（学校なし）</option></select>
+      <div id="pSchoolWrap" class="row2" style="margin-top:6px">
+        <div><label>校時</label><select id="pPeriod"><option value="normal">通常校時</option><option value="short">短縮</option><option value="half">半日</option></select></div>
+        <div><label>部活</label><select id="pClubW"><option value="club">部活あり</option><option value="noclub">部活なし</option></select></div>
+      </div>
+      <div id="pHolidayWrap" style="display:none;margin-top:6px"><label>部活</label>
+        <select id="pClubH"><option value="club">部活あり</option><option value="noclub">部活なし</option></select></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="primary" id="pApply" style="flex:1">▶ このテンプレを投入</button>
+        <button class="ghost" id="pSave">💾 対象日を保存</button>
+      </div>
+      <div id="pStatus" class="hint" style="margin-top:6px"></div>
+      <div id="pItems" style="margin-top:6px"></div>
+      <button class="ghost" id="pAddCurrent" style="width:100%;margin-top:6px">＋ 上のフォーム内容をこのテンプレに追加</button>
+
+      <div class="hint">時間割の作り方: 上のフォームを「📅予定」にして 1限 8:55…のようにコマを作り「＋このテンプレに追加」を繰り返す。または対象日に丸ごと組んで「💾対象日を保存」。▶で対象日に投入。</div>
+    </section>
+
+    <!-- 中: タイムライン -->
+    <section class="col">
+      <h2>📅 タイムライン（対象日の自動編成結果）</h2>
+      <div class="timeline" id="timeline"></div>
+      <div id="overflow"></div>
+    </section>
+
+    <!-- 右: 締切俯瞰 + 対象日の予定 -->
+    <section class="col">
+      <h2>⏰ 締切が近い順（全日）</h2>
+      <div id="deadlines"></div>
+      <h2 style="margin-top:16px">📅 この日の予定</h2>
+      <div id="fixedList"></div>
+    </section>
+  </div>
+
+  <footer class="shell-foot">
+    正本イメージ: タスク→<code>data/tasks.yaml</code> / 予定→<code>data/events.jsonl</code>（v2/同期設計.md）。proto はlocalStorage保存。
+  </footer>
+</div>
+
+<footer class="shell-foot">
+  データはブラウザの localStorage に保存（このプロトタイプ限定）。合体（v2.0本実装）時は各ツールREADME記載のスキーマへ移行予定。
+</footer>
+
+<script>
+  // タブ切替（シェル側の軽量ロジック。各ツールのJSはtype=moduleで自律的にrender済み）
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+      localStorage.setItem('lifeos_shell_active_tab', btn.dataset.tab);
+    });
+  });
+  const savedTab = localStorage.getItem('lifeos_shell_active_tab');
+  if(savedTab && document.getElementById(savedTab)){
+    document.querySelector(`.tab-btn[data-tab="${savedTab}"]`).click();
+  }
+</script>
+<script src="shared/sync.js"></script>
+<script type="module" src="tools/progress.js"></script>
+<script type="module" src="tools/workout.js"></script>
+<script type="module" src="tools/scheduler.js"></script>
+</body>
+</html>

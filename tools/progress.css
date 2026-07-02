@@ -1,0 +1,132 @@
+/* 進捗トラッカー 固有スタイル（共通部分は shared/base.css） */
+#tab-progress .tabsbar{margin:0 0 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#tab-progress .tab{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px 12px;cursor:pointer;
+     display:flex;align-items:center;gap:8px;font-size:12.5px}
+#tab-progress .tab.active{border-color:var(--accent);background:linear-gradient(135deg, rgba(91,140,255,.18), rgba(91,140,255,.05))}
+#tab-progress .tab .pct{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+#tab-progress .tab.active .pct{color:var(--accent);font-weight:700}
+
+#tab-progress .summary-ring{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0 14px}
+#tab-progress .ring{position:relative;width:120px;height:120px}
+#tab-progress .ring svg{transform:rotate(-90deg)}
+#tab-progress .ring .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+           font-size:24px;font-weight:800}
+#tab-progress .stat-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);padding:4px 2px}
+#tab-progress .stat-row b{color:var(--txt);font-weight:700}
+#tab-progress .daysleft{text-align:center;font-size:12px;color:var(--muted);margin-top:4px}
+#tab-progress .daysleft b{color:var(--accent);font-size:16px}
+
+#tab-progress .velocity-box{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+#tab-progress .velocity-num{font-size:13px}
+#tab-progress .velocity-num b{color:var(--accent)}
+#tab-progress .velocity-num.warn b{color:var(--high)}
+#tab-progress .velocity-hint{font-size:11px;color:var(--muted);margin-top:2px}
+#tab-progress .history-row{display:flex;align-items:flex-end;gap:3px;height:34px;margin-top:8px}
+#tab-progress .history-bar{flex:1;background:var(--accent);border-radius:2px 2px 0 0;min-height:2px;position:relative}
+#tab-progress .history-bar .lbl{position:absolute;bottom:-14px;left:0;right:0;text-align:center;font-size:8px;color:var(--muted)}
+#tab-progress .btn-snapshot{width:100%;margin-top:10px}
+
+#tab-progress .phase{border:1px solid var(--line);border-radius:10px;margin-bottom:9px;background:var(--panel2);overflow:hidden}
+#tab-progress .phase-head{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer}
+#tab-progress .phase-idx{width:22px;height:22px;border-radius:50%;background:var(--line);color:var(--muted);
+           display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:none}
+#tab-progress .phase.done .phase-idx{background:var(--done);color:#08130d}
+#tab-progress .phase-title{flex:1;min-width:0}
+#tab-progress .phase-title .t{font-weight:700;font-size:13.5px}
+#tab-progress .phase-title .n{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tab-progress .bar-wrap{width:90px;height:7px;border-radius:5px;background:var(--line);overflow:hidden;flex:none}
+#tab-progress .bar-fill{height:100%;background:var(--accent)}
+#tab-progress .phase.done .bar-fill{background:var(--done)}
+#tab-progress .phase-pct{width:36px;text-align:right;font-size:12px;color:var(--muted);flex:none;font-variant-numeric:tabular-nums}
+#tab-progress .chev{color:var(--muted);flex:none;transition:transform .15s}
+#tab-progress .phase.open .chev{transform:rotate(90deg)}
+#tab-progress .phase-body{display:none;padding:0 12px 12px;border-top:1px solid var(--line)}
+#tab-progress .phase.open .phase-body{display:block}
+#tab-progress .items{margin:8px 0}
+#tab-progress .item-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px}
+#tab-progress .item-row input[type=checkbox]{width:15px;height:15px;flex:none}
+#tab-progress .item-row.done .txt{text-decoration:line-through;color:var(--muted)}
+#tab-progress .item-row .txt{flex:1}
+#tab-progress .item-row .del{opacity:.5;font-size:11px}
+#tab-progress .add-item{display:flex;gap:6px;margin-top:6px}
+#tab-progress .add-item input{flex:1}
+#tab-progress .phase-note{width:100%;min-height:40px;margin-top:8px;resize:vertical;font-size:12.5px}
+#tab-progress .note-preview{font-size:12px;color:var(--muted);margin-top:5px;padding:6px 8px;background:var(--panel);
+              border-radius:6px;line-height:1.55;word-break:break-word}
+#tab-progress .note-preview:empty{display:none}
+#tab-progress .note-preview a{color:var(--accent)}
+#tab-progress .note-preview code{background:var(--line);padding:1px 4px;border-radius:4px;font-size:11px}
+#tab-progress .phase-meta{display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap}
+#tab-progress .phase-meta label{font-size:11px;color:var(--muted)}
+#tab-progress .phase-meta input[type=number]{width:56px}
+#tab-progress .phase-actions{display:flex;gap:6px;margin-left:auto}
+
+#tab-progress .add-phase{display:flex;gap:6px;margin-top:10px}
+#tab-progress .add-phase input{flex:1}
+
+#tab-progress .dot.todo{background:var(--line)} #tab-progress .dot.wip{background:var(--accent)} #tab-progress .dot.done{background:var(--done)}
+
+#tab-progress .nextbar{margin:0 0 14px}
+#tab-progress .nextcard{background:linear-gradient(135deg, rgba(91,140,255,.14), rgba(91,140,255,.04));
+          border:1px solid var(--accent);border-radius:var(--radius);padding:12px 14px;
+          display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#tab-progress .nextcard .lbl{font-size:11px;color:var(--accent);font-weight:700;letter-spacing:.04em;text-transform:uppercase;flex:none}
+#tab-progress .nextcard input[type=checkbox]{width:18px;height:18px;flex:none}
+#tab-progress .nextcard .body{flex:1;min-width:180px}
+#tab-progress .nextcard .body .ph{font-size:11px;color:var(--muted)}
+#tab-progress .nextcard .body .it{font-size:14.5px;font-weight:700}
+#tab-progress .nextcard .empty{font-size:13px;color:var(--muted)}
+#tab-progress .nextcard .actbtns{display:flex;gap:6px;flex:none;flex-wrap:wrap}
+
+#tab-progress .blocked-list{margin-top:10px}
+#tab-progress .blocked-item{display:flex;gap:6px;align-items:flex-start;padding:6px 8px;margin-bottom:6px;
+              background:rgba(255,172,59,.08);border:1px solid rgba(255,172,59,.35);border-radius:8px;font-size:11.5px}
+#tab-progress .blocked-item .ic{color:var(--mid);flex:none}
+#tab-progress .blocked-item .txt{flex:1}
+#tab-progress .blocked-item .txt .p{color:var(--muted);font-size:10.5px}
+#tab-progress .blocked-item button{flex:none}
+#tab-progress .badge-blocked{display:inline-flex;align-items:center;gap:3px;font-size:10px;color:var(--mid);
+               border:1px solid var(--mid);border-radius:5px;padding:1px 5px;margin-left:6px}
+
+#tab-progress .item-row.blocked{opacity:.85}
+#tab-progress .item-row .btn-block{flex:none;font-size:10px;padding:2px 6px;opacity:.6}
+#tab-progress .item-row .btn-block.on{opacity:1;color:var(--mid);border-color:var(--mid)}
+#tab-progress .block-note{width:100%;margin:4px 0 6px 23px;font-size:11.5px;padding:5px 7px}
+
+#tab-progress .due-warn{font-size:10px;color:var(--high);border:1px solid var(--high);border-radius:5px;padding:1px 5px}
+
+#tab-progress .dep-box{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+#tab-progress .dep-box h4{font-size:10.5px;color:var(--muted);margin:0 0 6px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+#tab-progress .dep-chip{display:flex;align-items:center;gap:6px;font-size:11.5px;background:var(--panel);
+          border:1px solid var(--line);border-radius:7px;padding:5px 8px;margin-bottom:5px}
+#tab-progress .dep-chip .t{flex:1}
+#tab-progress .dep-chip input[type=number]{width:46px;padding:3px 5px;font-size:11px}
+#tab-progress .dep-add{display:flex;gap:6px;margin-top:4px}
+#tab-progress .dep-add select{flex:1;font-size:11.5px}
+#tab-progress .dep-add input[type=number]{width:56px}
+#tab-progress .computed-start{font-size:11px;color:var(--accent)}
+
+#tab-progress .gantt-wrap{margin:14px 0}
+#tab-progress .gantt-head{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px}
+#tab-progress .gantt{position:relative}
+#tab-progress .gantt-grid{position:relative;height:16px;margin-left:190px;border-bottom:1px solid var(--line);margin-bottom:4px}
+#tab-progress .gantt-tick{position:absolute;top:0;bottom:0;border-left:1px dashed var(--line);font-size:9px;color:var(--muted);padding-left:3px}
+#tab-progress .gantt-rows{position:relative}
+#tab-progress .gantt-row{display:flex;align-items:center;gap:0;margin-bottom:4px;height:22px}
+#tab-progress .gantt-label{width:190px;flex:none;font-size:11px;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px}
+#tab-progress .gantt-track{flex:1;position:relative;height:14px;background:var(--panel2);border-radius:5px;overflow:hidden}
+#tab-progress .gantt-bar{position:absolute;top:0;height:100%;border-radius:5px;min-width:6px}
+#tab-progress .gantt-bar.wip{background:var(--accent)}
+#tab-progress .gantt-bar.todo{background:var(--muted)}
+#tab-progress .gantt-bar.done{background:var(--done)}
+#tab-progress .gantt-bar.overdue{background:var(--high)}
+#tab-progress .gantt-bar.soon{background:var(--mid)}
+#tab-progress .gantt-todayline{position:absolute;top:0;bottom:0;width:0;border-left:1.5px dashed var(--accent);z-index:2;pointer-events:none}
+#tab-progress .gantt-todayline .lbl{position:absolute;top:-16px;left:-11px;font-size:9px;color:var(--accent);font-weight:700;white-space:nowrap}
+#tab-progress .gantt-nodue{font-size:10px;color:var(--muted);padding-left:4px}
+#tab-progress .gantt-meta{display:flex;gap:6px;align-items:center}
+#tab-progress .gantt-meta label{font-size:11px;color:var(--muted)}
+#tab-progress .gantt-meta input[type=date]{width:126px;font-size:11px;padding:4px 6px}
+
+#tab-progress .foot{font-size:11px;color:var(--muted);padding:14px 0;text-align:center}
+#tab-progress .foot a{color:var(--accent)}
