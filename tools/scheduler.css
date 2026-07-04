@@ -23,6 +23,8 @@
 #tab-scheduler .item .acts{display:flex;flex-direction:column;gap:2px}
 #tab-scheduler .item .ic{color:var(--muted);cursor:pointer;border:none;background:none;padding:2px 4px;font-size:13px}
 #tab-scheduler .item .ic:hover{color:var(--txt)}
+#tab-scheduler .dl .ic{color:var(--muted);cursor:pointer;border:none;background:none;padding:2px 4px;font-size:13px}
+#tab-scheduler .dl .ic:hover{color:var(--txt)}
 #tab-scheduler .pill{display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;border:1px solid var(--line);margin-right:4px}
 #tab-scheduler .tag-other{color:var(--muted);font-size:11px}
 #tab-scheduler .timeline{position:relative;border-left:2px solid var(--line);margin-left:46px}

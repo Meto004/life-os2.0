@@ -1,5 +1,6 @@
 // life-os v2.0 統合ツール / スケジュール調整ツール
 // v2/prototypes/scheduler/index.html からロジックをそのまま移植（type=moduleでスコープ分離）。
+import * as GCal from './gcal.js';
 /* ===== データ層（proto = localStorage） ===== */
 const LS = 'scheduler_v3';
 let state = load();
@@ -194,11 +195,14 @@ function render(overflow=[]){
   fl.innerHTML = fx.length?'':'<div class="empty">この日の予定なし</div>';
   fx.forEach(i=>{
     const el=document.createElement('div'); el.className='dl';
-    el.innerHTML=`<span class="dot" style="background:var(--fixed)"></span><span>${esc(i.title)}${i.blocking===false?' <span class="tag-other">🟰重ねOK</span>':''}</span>
+    const pushBtn = i.gcal_source ? '' :
+      `<button class="ic push" style="padding:0 4px" title="${i.gcal_event_id?'Googleカレンダーを更新':'Googleカレンダーへ追加'}">${i.gcal_event_id?'🔄':'📤'}</button>`;
+    el.innerHTML=`<span class="dot" style="background:var(--fixed)"></span><span>${esc(i.title)}${i.blocking===false?' <span class="tag-other">🟰重ねOK</span>':''}${i.gcal_source?' <span class="tag-other">📥GCal</span>':''}</span>
       <span class="d">${i.fixed_start}〜${toHHMM(toMin(i.fixed_start)+i.est_min)}
-      <button class="ic edit" style="padding:0 4px">✏️</button><button class="ic del" style="padding:0 4px">✕</button></span>`;
+      ${pushBtn}<button class="ic edit" style="padding:0 4px">✏️</button><button class="ic del" style="padding:0 4px">✕</button></span>`;
     el.querySelector('.edit').onclick=()=>loadToForm(i.id);
     el.querySelector('.del').onclick=()=>del(i.id);
+    if(!i.gcal_source) el.querySelector('.push').onclick=()=>pushEventToGCal(i.id);
     fl.appendChild(el);
   });
 
@@ -284,6 +288,63 @@ function del(id){ if(edit.id===id) resetForm(); state.items=state.items.filter(i
 function unplace(id){ const i=state.items.find(x=>x.id===id); if(!i) return; i.placements=[]; save(); render(); }
 function shiftDay(n){ const d=new Date(state.day+'T00:00'); d.setDate(d.getDate()+n);
   d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); state.day=d.toISOString().slice(0,10); save(); render(); }
+
+/* ===== Googleカレンダー同期（読込） ===== */
+function setGcalStatus(text){
+  const el = document.getElementById('gcalStatus');
+  if(el) el.textContent = text;
+}
+async function syncWithGoogleCalendar(){
+  setGcalStatus('🔄 同期中…');
+  try{
+    const token = await GCal.ensureToken('readonly');
+    const calendars = await GCal.apiListCalendars(token);
+    const schedulerCal = GCal.findCalendarByName(calendars, GCal.SCHEDULER_CALENDAR_NAME);
+    const sourceCalendars = calendars.filter(c => !schedulerCal || c.id !== schedulerCal.id);
+    const { timeMin, timeMax, rangeStartDate, rangeEndDateExclusive } = GCal.syncWindow(todayISO());
+    const imported = [];
+    let failedCount = 0;
+    for(const cal of sourceCalendars){
+      try{
+        const events = await GCal.apiListEvents(token, cal.id, timeMin, timeMax);
+        events.forEach(ev=>{
+          const item = GCal.mapGCalEventToItem(ev, cal.id);
+          if(item) imported.push(item);
+        });
+      }catch(e){ failedCount++; }
+    }
+    state.items = GCal.mergeGCalImport(state.items, imported, rangeStartDate, rangeEndDateExclusive);
+    save(); render();
+    setGcalStatus(failedCount
+      ? `⚠️ ${imported.length}件同期・${failedCount}件のカレンダー取得失敗`
+      : `✅ ${imported.length}件同期 ${toHHMM(nowMin())}`);
+  }catch(e){
+    setGcalStatus('⚠️ 同期エラー: ' + e.message);
+  }
+}
+async function pushEventToGCal(id){
+  const item = state.items.find(i=>i.id===id); if(!item) return;
+  setGcalStatus('🔄 送信中…');
+  try{
+    const token = await GCal.ensureToken('events');
+    const calendars = await GCal.apiListCalendars(token);
+    const schedulerCal = GCal.findCalendarByName(calendars, GCal.SCHEDULER_CALENDAR_NAME);
+    if(!schedulerCal) throw new Error(`「${GCal.SCHEDULER_CALENDAR_NAME}」カレンダーが見つかりません（Googleカレンダー側で作成してください）`);
+    const body = GCal.buildEventBody(item);
+    if(item.gcal_event_id){
+      await GCal.apiPatchEvent(token, schedulerCal.id, item.gcal_event_id, body);
+      setGcalStatus(`✅ 更新しました ${toHHMM(nowMin())}`);
+    }else{
+      const created = await GCal.apiInsertEvent(token, schedulerCal.id, body);
+      item.gcal_event_id = created.id;
+      save();
+      setGcalStatus(`✅ 追加しました ${toHHMM(nowMin())}`);
+    }
+    render();
+  }catch(e){
+    setGcalStatus('⚠️ 送信エラー: ' + e.message);
+  }
+}
 
 /* ===== ルーティンテンプレート（プリセット選択式） =====
    決定木: 平日(学校あり)→[校時:通常/短縮/半日]×[部活:あり/なし] / 休日(学校なし)→[部活:あり/なし] */
@@ -405,6 +466,7 @@ document.getElementById('chunkMax').onchange=e=>{state.chunkMax=Math.max(0,+e.ta
 document.getElementById('pSave').onclick=savePreset;
 document.getElementById('pApply').onclick=applyPreset;
 document.getElementById('pAddCurrent').onclick=addCurrentToPreset;
+document.getElementById('gcalSyncBtn').onclick = syncWithGoogleCalendar;
 ['pDay','pPeriod','pClubW','pClubH'].forEach(id=>document.getElementById(id).onchange=updatePresetUI);
 document.getElementById('fTitle').addEventListener('keydown',e=>{if(e.key==='Enter')submitForm();});
 setKind('task');

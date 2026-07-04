@@ -45,8 +45,20 @@ function load(){
 }
 function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); render(); }
 
+// 種目の「目安（target下限）」を自己ベストの開始値として未設定分のみ補完（既存の実測値は上書きしない）
+function ensurePbStartDefaults(){
+  Object.values(DAYS).forEach(dayDef=>dayDef.exercises.forEach(ex=>{
+    if(state.pbStart[ex.key]===undefined || state.pbStart[ex.key]===null){
+      state.pbStart[ex.key] = ex.target[0];
+    }
+  }));
+}
+
 let state = load();
+ensurePbStartDefaults();
 let setMode = 'full'; // 'full' (3 sets) or 'short' (2 sets)
+// 記録の対象日（通常は今日=todayStr()。デバイスの時計ずれによる誤記録の修正や、過去日のバックフィルにも使う）
+let editDate = todayStr();
 
 function lastLog(){
   if(state.logs.length===0) return null;
@@ -56,13 +68,13 @@ let overrideDay = null;
 function suggestedDay(){
   if(overrideDay) return overrideDay;
   const already = todaysLog();
-  if(already) return already.day; // 今日すでに記録済みならその日を表示し続ける（翌日提案を混入させない）
-  const prior = state.logs.filter(l=>l.date<todayStr()).sort((a,b)=>a.date.localeCompare(b.date)).pop();
+  if(already) return already.day; // 対象日にすでに記録済みならその日を表示し続ける（翌日提案を混入させない）
+  const prior = state.logs.filter(l=>l.date<editDate).sort((a,b)=>a.date.localeCompare(b.date)).pop();
   if(prior) return prior.type==='skip' ? prior.day : nextDay(prior.day); // 休養日は同じDayを次回に持ち越す
   return nextDay(SEED.lastDay);
 }
 function todaysLog(){
-  return state.logs.find(l=>l.date===todayStr());
+  return state.logs.find(l=>l.date===editDate);
 }
 
 function computeStreak(){
@@ -91,8 +103,9 @@ function pbMax(exKey){
 
 function renderToday(){
   const d = suggestedDay();
+  const isToday = editDate===todayStr();
   document.getElementById('dayBadge').textContent = d;
-  document.getElementById('dayTitle').textContent = 'Day '+d+'（'+DAYS[d].label+'）';
+  document.getElementById('dayTitle').textContent = 'Day '+d+'（'+DAYS[d].label+'）・'+editDate+(isToday?'（今日）':'（過去日を編集中）');
   document.getElementById('dayFocus').textContent = setMode==='short' ? '10分版・各2セット' : 'フル・各3セット';
 
   const swap = document.getElementById('daySwap');
@@ -103,7 +116,7 @@ function renderToday(){
   const undoBtn = document.getElementById('btnUndo');
   if(already){
     box.style.display='flex';
-    box.textContent = already.type==='skip' ? '😴 今日は休養/スキップとして記録済み' : `✅ 今日は Day ${already.day} を記録済み（${already.type==='quick'?'ワンタップ':already.type==='short'?'10分版':'フル'}）`;
+    box.textContent = (already.type==='skip' ? `😴 ${editDate} は休養/スキップとして記録済み` : `✅ ${editDate} は Day ${already.day} を記録済み（${already.type==='quick'?'ワンタップ':already.type==='short'?'10分版':'フル'}）`);
     undoBtn.style.display='inline-block';
   } else {
     box.style.display='none';
@@ -141,31 +154,49 @@ function collectSets(d){
 }
 
 function upsertLog(entry){
+  const existing = state.logs.find(l=>l.date===entry.date);
+  if(existing){
+    const same = existing.type===entry.type && JSON.stringify(existing.sets)===JSON.stringify(entry.sets);
+    if(!same){
+      const label = existing.type==='skip' ? '休養/スキップ' : `Day ${existing.day}（${existing.type==='quick'?'ワンタップ':existing.type==='short'?'10分版':'フル'}）`;
+      const ok = confirm(`⚠️ ${entry.date} には既に記録があります（${label}）。\n端末の日付がずれていると、別の日の記録を誤って上書き・消去してしまうことがあります。\n本当にこの内容で上書きしますか？`);
+      if(!ok) return;
+    }
+  }
   state.logs = state.logs.filter(l=>l.date!==entry.date);
   state.logs.push(entry);
   save();
 }
+
+document.getElementById('editDateInput').value = editDate;
+document.getElementById('editDateInput').max = todayStr(); // 未来日はNG（過去日の修正・バックフィルのみ許可）
+document.getElementById('editDateInput').onchange = (e)=>{
+  editDate = e.target.value || todayStr();
+  overrideDay = null; // 対象日を変えたらDayの手動指定はリセット
+  renderToday();
+};
 
 document.getElementById('btnQuick').onclick = ()=>{
   const d = suggestedDay();
   const nsets = setMode==='short' ? 2 : 3;
   const sets = {};
   DAYS[d].exercises.forEach(ex=>{ sets[ex.key] = Array(nsets).fill(ex.target[0]); });
-  upsertLog({date:todayStr(), day:d, type:'quick', sets});
+  upsertLog({date:editDate, day:d, type:'quick', sets});
 };
 document.getElementById('btnSaveDetail').onclick = ()=>{
   const d = suggestedDay();
   const sets = collectSets(d);
   const hasAny = Object.values(sets).some(arr=>arr.some(v=>v!=null));
   if(!hasAny){ alert('回数を1つ以上入力してください（未入力ならワンタップ完了をどうぞ）'); return; }
-  upsertLog({date:todayStr(), day:d, type: setMode==='short'?'short':'full', sets});
+  upsertLog({date:editDate, day:d, type: setMode==='short'?'short':'full', sets});
 };
 document.getElementById('btnSkip').onclick = ()=>{
   const d = suggestedDay();
-  upsertLog({date:todayStr(), day:d, type:'skip', sets:{}});
+  upsertLog({date:editDate, day:d, type:'skip', sets:{}});
 };
 document.getElementById('btnUndo').onclick = ()=>{
-  state.logs = state.logs.filter(l=>l.date!==todayStr());
+  if(!confirm(`${editDate} の記録を取り消します。よろしいですか？`)) return;
+  state.logs = state.logs.filter(l=>l.date!==editDate);
   save();
 };
 document.getElementById('btnFullMode').onclick = ()=>{ setMode='full'; renderToday(); };

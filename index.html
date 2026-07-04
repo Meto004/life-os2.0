@@ -135,6 +135,7 @@
             <div class="n" id="dayFocus">-</div>
           </div>
           <div class="swap">
+            <input type="date" id="editDateInput" title="記録の対象日（通常は今日。過去日の修正・バックフィルにも使えます）">
             <select id="daySwap"></select>
           </div>
         </div>
@@ -227,6 +228,8 @@
       <label class="sub" title="この分数を超えるタスクは自動で小コマに分割（0で分割しない）">1コマ上限 <input type="number" id="chunkMax" min="0" step="15" value="60" style="width:64px">分</label>
       <button class="primary" id="autoBtn">⚡ 自動で時間割を組む</button>
       <button class="ghost" id="sampleBtn">サンプル投入</button>
+      <button class="ghost" id="gcalSyncBtn">📅 カレンダーと同期</button>
+      <span class="sub" id="gcalStatus"></span>
     </div>
   </div>
 
