@@ -7,7 +7,9 @@ let state = load();
 let edit = { id:null, kind:'task' };
 
 function load(){
-  try{ const s=JSON.parse(localStorage.getItem(LS)); if(s){ if(s.buffer===undefined)s.buffer=5; if(s.chunkMax===undefined)s.chunkMax=60; if(s.templates===undefined)s.templates=[]; if(s.presets===undefined)s.presets={}; s.items.forEach(migrate); return s; } }catch(e){}
+  try{ const s=JSON.parse(localStorage.getItem(LS)); if(s){ if(s.buffer===undefined)s.buffer=5; if(s.chunkMax===undefined)s.chunkMax=60; if(s.templates===undefined)s.templates=[]; if(s.presets===undefined)s.presets={}; s.items.forEach(migrate);
+    if(s.day < todayISO()){ s.day = todayISO(); localStorage.setItem(LS, JSON.stringify(s)); } // 前回開いたままの過去日で固まるのを防ぐ（未来日への意図的な移動は保持）
+    return s; } }catch(e){}
   return base();
 }
 function migrate(i){
