@@ -99,7 +99,7 @@ function autoSchedule(){
 let archOpen=false;
 function render(overflow=[]){
   const day=state.day;
-  document.getElementById('dateLabel').textContent = fmtDay(day);
+  document.getElementById('dateLabel').textContent = fmtDay(todayISO()); // 時計の隣は常に「今日の実際の日付」（対象日=state.dayとは独立）
   document.getElementById('dayPick').value = day;
   document.getElementById('workStart').value = state.workStart;
   document.getElementById('workEnd').value = state.workEnd;
