@@ -91,6 +91,12 @@
     }
   }
 
+  /* ===== 時刻表示 ===== */
+  function fmtLocalTime(iso){
+    const d = new Date(iso);
+    return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  }
+
   /* ===== push / pull ===== */
   async function pushNow(){
     if(!syncState.code) return;
@@ -99,7 +105,7 @@
       const payload = buildPayload();
       await pushRow(syncState.code, payload);
       rawSetItem(LAST_SAVED_KEY, payload.savedAt);
-      setBadge('ok', '✅ 同期済み ' + payload.savedAt.slice(11,16));
+      setBadge('ok', '✅ 同期済み ' + fmtLocalTime(payload.savedAt)); // savedAtはUTCのISO文字列のため、表示はブラウザのローカル時刻に変換
     }catch(e){
       setBadge('err', '⚠️ 同期エラー（オフライン等）');
     }
