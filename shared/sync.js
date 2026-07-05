@@ -10,7 +10,9 @@
   const UNLOCKED_KEY = 'lifeos_gate_unlocked';
   const LAST_SAVED_KEY = 'lifeos_sync_last_saved_at';
 
-  const WATCHED_KEYS = ['lifeos_progress_tracker_v2', 'lifeos_workout_tracker_v1', 'scheduler_v3'];
+  // 2026-07-05: 進捗トラッカー(lifeos_progress_tracker_v2)は本実装（v2/app/、Next.js+Git正本）へ移行済みのため対象外に。
+  // 筋トレ・スケジューラーはPhase 2/3で移行予定、それまでは引き続きこの旧方式で同期する。
+  const WATCHED_KEYS = ['lifeos_workout_tracker_v1', 'scheduler_v3'];
 
   let syncState = { code: null, passwordHash: null }; // メモリ上のみ（パスワード平文は保持しない）
   let pushTimer = null;
